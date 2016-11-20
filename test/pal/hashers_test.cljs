@@ -68,9 +68,10 @@
   "bcrypt+sha512$746869732d69732d612d73616c742d6b$12$5581af5775b6cd414ac23691a9e85e7b912b1f4f1bf7ecc4")
 
 (deftest pal-derive-matches-buddy-derive
-  (let [opts {:alg :bcrypt+sha512
-              :salt "this-is-a-salt-k"}
-        pal-hash (hashers/derive opts)]
+  (let [opts (-> buddy-hash-bcrypt+sha512
+                 hashers/parse-password
+                 (dissoc :password))
+        pal-hash (hashers/derive "foobar" opts)]
     (is (= buddy-hash-bcrypt+sha512 pal-hash))))
 
 (deftest pal-check-validates-buddy-hash
