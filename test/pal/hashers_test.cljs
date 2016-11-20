@@ -65,7 +65,7 @@
 ;; pal specific tests
 
 (def buddy-hash-bcrypt+sha512
-  "bcrypt+sha512$8cd98b69ee470e9da2e988ef5631fcf0$12$7c3c934c206cf5c8d6ceddfd9a9889010364bec1fb4a765f")
+  "bcrypt+sha512$746869732d69732d612d73616c742d6b$12$5581af5775b6cd414ac23691a9e85e7b912b1f4f1bf7ecc4")
 
 (deftest pal-derive-matches-buddy-derive
   (let [opts {:alg :bcrypt+sha512
