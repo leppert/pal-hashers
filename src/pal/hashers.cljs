@@ -14,6 +14,10 @@
   [b]
   (js/dcodeIO.bcrypt.encodeBase64 b (count b)))
 
+(defn- bcrypt-base64->bytes
+  [b]
+  (js/dcodeIO.bcrypt.decodeBase64 b 100))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Constants
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -64,7 +68,7 @@
                      (js/dcodeIO.bcrypt.hashSync salt-str)
                      (str/split salt-str)
                      last
-                     codecs/str->bytes)]
+                     bcrypt-base64->bytes)]
     {:alg alg
      :iterations iterations
      :salt salt
