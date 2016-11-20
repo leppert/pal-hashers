@@ -64,9 +64,14 @@
 
 ;; pal specific tests
 
-(deftest pal-hashers-match-buddy-hashers
+(def buddy-hash-bcrypt+sha512
+  "bcrypt+sha512$8cd98b69ee470e9da2e988ef5631fcf0$12$7c3c934c206cf5c8d6ceddfd9a9889010364bec1fb4a765f")
+
+(deftest pal-derive-matches-buddy-derive
   (let [opts {:alg :bcrypt+sha512
               :salt "this-is-a-salt-k"}
-        pal-hash (hashers/derive opts)
-        buddy-hash "bcrypt+sha512$8cd98b69ee470e9da2e988ef5631fcf0$12$7c3c934c206cf5c8d6ceddfd9a9889010364bec1fb4a765f"]
-    (is (= buddy-hash pal-hash))))
+        pal-hash (hashers/derive opts)]
+    (is (= buddy-hash-bcrypt+sha512 pal-hash))))
+
+(deftest pal-check-validates-buddy-hash
+    (is (hashers/check "foobar" buddy-hash-bcrypt+sha512)))
