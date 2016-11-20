@@ -4,6 +4,8 @@
             [pal.core.nonce :as nonce]
             [pal.core.codecs :refer [bytes->hex]]))
 
+;; tests copied from buddy
+
 (deftest pal-hashers
   (let [pwd "my-test-password"]
     (are [alg]
@@ -59,3 +61,12 @@
           (time (hashers/encrypt pwd {:alg alg}))
           true)
       :bcrypt+sha512)))
+
+;; pal specific tests
+
+(deftest pal-hashers-match-buddy-hashers
+  (let [opts {:alg :bcrypt+sha512
+              :salt "this-is-a-salt-k"}
+        pal-hash (hashers/derive opts)
+        buddy-hash "bcrypt+sha512$8cd98b69ee470e9da2e988ef5631fcf0$12$7c3c934c206cf5c8d6ceddfd9a9889010364bec1fb4a765f"]
+    (is (= buddy-hash pal-hash))))
