@@ -11,3 +11,4 @@ pom.xml.asc
 .hg/
 .cljs_node_repl
 .DS_Store
+node_modules
