@@ -1,0 +1,140 @@
+(ns pal.hashers
+  (:refer-clojure :exclude [derive])
+  (:require [clojure.string :as str]
+            [pal.core.codecs :as codecs]
+            [pal.core.hash :as hash]
+            [pal.core.nonce :as nonce]
+            [pal.core.bytes :as bytes]
+            [goog.crypt :as gc]
+            [goog.string :as gstring]
+            [goog.string.format]
+            [cljsjs.bcrypt]))
+
+(defn- bytes->bcrypt-base64
+  [b]
+  (js/dcodeIO.bcrypt.encodeBase64 b (count b)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Constants
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(def ^:no-doc ^:static
+  +iterations+
+  {:bcrypt+sha512 12})
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Impl Interface
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmulti parse-password
+  "Parse password from string to parts."
+  (fn [encryptedpassword]
+    (-> encryptedpassword
+        (str/split #"\$")
+        (first)
+        (keyword))))
+
+(defn- dispatch
+  [opts & args]
+  (:alg opts))
+
+(defmulti derive-password
+  "Derive key depending on algorithm."
+  dispatch)
+
+(defmulti check-password
+  "Password verification implementation."
+  dispatch)
+
+(defmulti format-password
+  "Format password depending on algorithm."
+  dispatch)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Key Derivation
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod derive-password :bcrypt+sha512
+  [{:keys [alg password salt iterations]}]
+  (let [salt (codecs/to-bytes (or salt (nonce/random-bytes 16)))
+        iterations (or iterations (get +iterations+ alg))
+        salt-str (str "$2a$" iterations "$" (bytes->bcrypt-base64 salt))
+        password (-> (hash/sha512 password)
+                     codecs/bytes->str
+                     (js/dcodeIO.bcrypt.hashSync salt-str)
+                     (str/split salt-str)
+                     last
+                     codecs/str->bytes)]
+    {:alg alg
+     :iterations iterations
+     :salt salt
+     :password password}))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Key Verification
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod check-password :default
+  [pwdparams attempt]
+  (let [candidate (-> (assoc pwdparams :password attempt)
+                      (derive-password))]
+    (bytes/equals? (:password pwdparams)
+                   (:password candidate))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Key Formatting
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod format-password :default
+  [{:keys [alg password salt iterations]}]
+  (let [algname (name alg)
+        salt (codecs/bytes->hex salt)
+        password (codecs/bytes->hex password)]
+    (if (nil? iterations)
+      (gstring/format "%s$%s$%s" algname salt password)
+      (gstring/format "%s$%s$%s$%s" algname salt iterations password))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Key Parsing
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod parse-password :default
+  [encryptedpassword]
+  (let [[alg salt iterations password] (str/split encryptedpassword #"\$")
+        alg (keyword alg)]
+    {:alg alg
+     :salt (codecs/hex->bytes salt)
+     :password (codecs/hex->bytes password)
+     :iterations (js/parseInt iterations)}))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Public Api
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn derive
+  "Encrypts a raw string password."
+  ([password] (derive password {}))
+  ([password options]
+   (-> (assoc options
+              :alg (:alg options :bcrypt+sha512)
+              :password (codecs/str->bytes password))
+       (derive-password)
+       (format-password))))
+
+(defn check
+  "Check if a unencrypted password matches
+  with another encrypted password."
+  ([attempt encrypted]
+   (check attempt encrypted {}))
+  ([attempt encrypted {:keys [limit setter prefered]}]
+   (when (and attempt encrypted)
+     (let [pwdparams (parse-password encrypted)]
+       (if (and (set? limit) (not (contains? limit (:alg pwdparams))))
+         false
+         (let [attempt' (codecs/str->bytes attempt)
+               result (check-password pwdparams attempt')]
+           result))))))
+
+(def encrypt
+  "Backward compatibility alias for `derive`."
+  derive)
