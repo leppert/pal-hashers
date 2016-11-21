@@ -31,6 +31,6 @@
                               :target        :nodejs
                               :language-in   :ecmascript5
                               :optimizations :none
-                              :main          pal.hashers.test-runner}}}}
+                              :main          pal.test-runner}}}}
 
   :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]})

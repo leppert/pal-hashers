@@ -1,4 +1,4 @@
-(ns pal.hashers.test-runner
+(ns pal.test-runner
  (:require [doo.runner :refer-macros [doo-tests]]
            [pal.hashers-test]
            [cljs.nodejs :as nodejs]))
