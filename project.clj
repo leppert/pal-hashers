@@ -7,11 +7,12 @@
                  [org.clojure/clojurescript "1.9.293"]
                  [com.cemerick/piggieback "0.2.1"]
                  [pal/pal-core "0.1.0-SNAPSHOT2"]
-                 [cljsjs/bcrypt "2.3.0-0"]]
+                 [buddy/buddy-hashers "1.1.0"]]
   :plugins [[lein-cljsbuild "1.1.4"]
             [lein-npm       "0.6.2"]
             [lein-doo       "0.1.7"]]
-  :npm {:dependencies [[source-map-support "0.4.6"]]}
+  :npm {:dependencies [[source-map-support "0.4.6"]
+                       [bcryptjs "leppert/bcrypt.js#02bfd95"]]}
 
   :doo {:build "test"
         :alias {:default [:node]}}
@@ -23,8 +24,7 @@
                                     :source-map    "target/pal-hashers/pal_hashers.js.map"
                                     :target        :nodejs
                                     :language-in   :ecmascript5
-                                    :optimizations :advanced
-                                    }}
+                                    :optimizations :advanced}}
             :test {:source-paths ["src" "test"]
                    :compiler {:output-to     "target/pal-hashers-test/pal_hashers.js"
                               :output-dir    "target/pal-hashers-test"

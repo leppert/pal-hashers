@@ -1,22 +1,14 @@
 (ns pal.hashers
   (:refer-clojure :exclude [derive])
-  (:require [clojure.string :as str]
+  (:require [cljs.nodejs :as nodejs]
+            [clojure.string :as str]
             [pal.core.codecs :as codecs]
             [pal.core.hash :as hash]
             [pal.core.nonce :as nonce]
             [pal.core.bytes :as bytes]
             [goog.crypt :as gc]
             [goog.string :as gstring]
-            [goog.string.format]
-            [cljsjs.bcrypt]))
-
-(defn- bytes->bcrypt-base64
-  [b]
-  (js/dcodeIO.bcrypt.encodeBase64 b (count b)))
-
-(defn- bcrypt-base64->bytes
-  [b]
-  (js/dcodeIO.bcrypt.decodeBase64 b 100))
+            [goog.string.format]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Constants
@@ -58,17 +50,16 @@
 ;; Key Derivation
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defn- bcrypt-generate
+  [password salt iterations]
+  (.crypt (nodejs/require "bcryptjs") password salt iterations))
+
 (defmethod derive-password :bcrypt+sha512
   [{:keys [alg password salt iterations]}]
   (let [salt (codecs/to-bytes (or salt (nonce/random-bytes 16)))
         iterations (or iterations (get +iterations+ alg))
-        salt-str (str "$2a$" iterations "$" (bytes->bcrypt-base64 salt))
         password (-> (hash/sha512 password)
-                     codecs/bytes->str
-                     (js/dcodeIO.bcrypt.hashSync salt-str)
-                     (str/split salt-str)
-                     last
-                     bcrypt-base64->bytes)]
+                     (bcrypt-generate salt iterations))]
     {:alg alg
      :iterations iterations
      :salt salt
