@@ -24,7 +24,7 @@
                                     :source-map    "target/pal-hashers/pal_hashers.js.map"
                                     :target        :nodejs
                                     :language-in   :ecmascript5
-                                    :optimizations :advanced}}
+                                    :optimizations :simple}}
             :test {:source-paths ["src" "test"]
                    :compiler {:output-to     "target/pal-hashers-test/pal_hashers.js"
                               :output-dir    "target/pal-hashers-test"
