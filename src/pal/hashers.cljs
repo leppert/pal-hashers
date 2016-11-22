@@ -16,7 +16,8 @@
 
 (def ^:no-doc ^:static
   +iterations+
-  {:bcrypt+sha512 12})
+  {:bcrypt+sha512 12
+   :bcrypt+sha384 12})
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Impl Interface
@@ -59,6 +60,17 @@
   (let [salt (codecs/to-bytes (or salt (nonce/random-bytes 16)))
         iterations (or iterations (get +iterations+ alg))
         password (-> (hash/sha512 password)
+                     (bcrypt-generate salt iterations))]
+    {:alg alg
+     :iterations iterations
+     :salt salt
+     :password password}))
+
+(defmethod derive-password :bcrypt+sha384
+  [{:keys [alg password salt iterations]}]
+  (let [salt (codecs/to-bytes (or salt (nonce/random-bytes 16)))
+        iterations (or iterations (get +iterations+ alg))
+        password (-> (hash/sha384 password)
                      (bcrypt-generate salt iterations))]
     {:alg alg
      :iterations iterations

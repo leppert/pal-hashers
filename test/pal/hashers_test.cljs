@@ -60,19 +60,12 @@
           (println alg)
           (time (hashers/encrypt pwd {:alg alg}))
           true)
-      :bcrypt+sha512)))
+      :bcrypt+sha512
+      :bcrypt+sha384)))
 
 ;; pal specific tests
 
-(def buddy-hash-bcrypt+sha512
-  "bcrypt+sha512$0102030405060708090a0b0c0d0e0f10$12$e74c3d09fadf982b6a3d5d7a704134339ed6aac45f640500")
-
-(deftest pal-derive-matches-buddy-derive
-  (let [opts (-> buddy-hash-bcrypt+sha512
-                 hashers/parse-password
-                 (dissoc :password))
-        pal-hash (hashers/derive "foobar" opts)]
-    (is (= buddy-hash-bcrypt+sha512 pal-hash))))
-
 (deftest pal-check-validates-buddy-hash
-    (is (hashers/check "foobar" buddy-hash-bcrypt+sha512)))
+  (are [hash] (= true (hashers/check "foobar" hash))
+    "bcrypt+sha512$0102030405060708090a0b0c0d0e0f10$12$e74c3d09fadf982b6a3d5d7a704134339ed6aac45f640500"
+    "bcrypt+sha384$0102030405060708090a0b0c0d0e0f10$12$f56ffb6d2204d38ead28baedc7980ae0d86382713c14b68b"))
