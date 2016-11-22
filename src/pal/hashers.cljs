@@ -1,7 +1,6 @@
 (ns pal.hashers
   (:refer-clojure :exclude [derive])
-  (:require [cljs.nodejs :as nodejs]
-            [clojure.string :as str]
+  (:require [clojure.string :as str]
             [pal.core.codecs :as codecs]
             [pal.core.hash :as hash]
             [pal.core.nonce :as nonce]
@@ -9,7 +8,8 @@
             [goog.crypt :as gc]
             [goog.crypt.pbkdf2]
             [goog.string :as gstring]
-            [goog.string.format]))
+            [goog.string.format]
+            [dcodeIO.bcrypt]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Constants
@@ -65,7 +65,7 @@
 
 (defn- bcrypt-generate
   [password salt iterations]
-  (.crypt (nodejs/require "bcryptjs") password salt iterations))
+  (js/dcodeIO.bcrypt.crypt password salt iterations))
 
 (defmethod derive-password :bcrypt+sha512
   [{:keys [alg password salt iterations]}]

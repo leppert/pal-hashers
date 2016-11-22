@@ -1,4 +1,4 @@
-(defproject pal/pal-hashers "0.1.0-SNAPSHOT"
+(defproject pal/pal-hashers "0.1.0-SNAPSHOT2"
   :description "A ClojureScript port of buddy-hashers"
   :url "https://github.com/leppert/pal-hashers"
   :license {:name "Apache License, Version 2.0"
@@ -12,6 +12,8 @@
             [lein-doo       "0.1.7"]]
   :npm {:dependencies [[source-map-support "0.4.6"]
                        [bcryptjs "leppert/bcrypt.js#02bfd95"]]}
+
+  :source-paths ["src" "node_modules"]
 
   :doo {:build "test"
         :alias {:default [:node]}}
