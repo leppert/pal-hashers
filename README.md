@@ -6,6 +6,13 @@ A ClojureScript port of [_buddy-hashers_](https://github.com/funcool/buddy-hashe
 
 ## Usage
 
+
+[![Clojars Project](https://img.shields.io/clojars/v/pal/pal-hashers.svg)](https://clojars.org/pal/pal-hashers)
+
+``` clojurescript
+[pal/pal-hashers "0.1.0-SNAPSHOT"]
+```
+
 See [_buddy-hashers_](https://github.com/funcool/buddy-hashers) for usage.
 
 ## Status
