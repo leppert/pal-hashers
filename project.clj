@@ -17,14 +17,7 @@
         :alias {:default [:node]}}
 
   :cljsbuild
-  {:builds {:production {:source-paths ["src"]
-                         :compiler {:output-to     "target/pal-hashers/pal_hashers.js"
-                                    :output-dir    "target/pal-hashers"
-                                    :source-map    "target/pal-hashers/pal_hashers.js.map"
-                                    :target        :nodejs
-                                    :language-in   :ecmascript5
-                                    :optimizations :simple}}
-            :test {:source-paths ["src" "test"]
+  {:builds {:test {:source-paths ["src" "test"]
                    :compiler {:output-to     "target/pal-hashers-test/pal_hashers.js"
                               :output-dir    "target/pal-hashers-test"
                               :target        :nodejs
