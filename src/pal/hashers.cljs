@@ -7,6 +7,7 @@
             [pal.core.nonce :as nonce]
             [pal.core.bytes :as bytes]
             [goog.crypt :as gc]
+            [goog.crypt.pbkdf2]
             [goog.string :as gstring]
             [goog.string.format]))
 
@@ -16,7 +17,8 @@
 
 (def ^:no-doc ^:static
   +iterations+
-  {:bcrypt+sha512 12
+  {:pbkdf2+sha1 100000
+   :bcrypt+sha512 12
    :bcrypt+sha384 12})
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -50,6 +52,16 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Key Derivation
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod derive-password :pbkdf2+sha1
+  [{:keys [alg password salt iterations]}]
+  (let [salt (codecs/to-bytes (or salt (nonce/random-bytes 12)))
+        iterations (or iterations (get +iterations+ alg))
+        password (.deriveKeySha1 gc/pbkdf2 password salt iterations 160)]
+    {:alg alg
+     :iterations iterations
+     :salt salt
+     :password password}))
 
 (defn- bcrypt-generate
   [password salt iterations]

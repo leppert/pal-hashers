@@ -11,7 +11,9 @@
     (are [alg]
         (let [result (hashers/encrypt pwd {:alg alg})]
           (hashers/check pwd result))
-      :bcrypt+sha512)))
+      :pbkdf2+sha1
+      :bcrypt+sha512
+      :bcrypt+sha384)))
 
 (deftest confirm-check-failure
   (let [pwd-good "my-test-password"
@@ -19,7 +21,9 @@
     (are [alg]
         (let [result (hashers/encrypt pwd-good {:alg alg})]
           (not (hashers/check pwd-bad result)))
-      :bcrypt+sha512)))
+      :pbkdf2+sha1
+      :bcrypt+sha512
+      :bcrypt+sha384)))
 
 (deftest buddy-hashers-nil
   (let [pwd "my-test-password"
@@ -33,7 +37,9 @@
     (are [alg]
         (-> (hashers/encrypt pwd {:alg alg})
             (.startsWith (name alg)))
-      :bcrypt+sha512)))
+      :pbkdf2+sha1
+      :bcrypt+sha512
+      :bcrypt+sha384)))
 
 ;; Confirm that the algorithm used is always embedded at the
 ;; start of the hash, and that the salt is also appended (after
@@ -45,7 +51,9 @@
     (are [alg]
         (-> (hashers/encrypt pwd {:alg alg :salt salt})
             (.startsWith (str (name alg) "$" (bytes->hex salt))))
-      :bcrypt+sha512)))
+      :pbkdf2+sha1
+      :bcrypt+sha512
+      :bcrypt+sha384)))
 
 (deftest limit-available-algorithms
   (let [pwd (hashers/encrypt "hello" {:alg :bcrypt+sha512})
@@ -60,6 +68,7 @@
           (println alg)
           (time (hashers/encrypt pwd {:alg alg}))
           true)
+      :pbkdf2+sha1
       :bcrypt+sha512
       :bcrypt+sha384)))
 
@@ -67,5 +76,6 @@
 
 (deftest pal-check-validates-buddy-hash
   (are [hash] (= true (hashers/check "foobar" hash))
-    "bcrypt+sha512$0102030405060708090a0b0c0d0e0f10$12$e74c3d09fadf982b6a3d5d7a704134339ed6aac45f640500"
-    "bcrypt+sha384$0102030405060708090a0b0c0d0e0f10$12$f56ffb6d2204d38ead28baedc7980ae0d86382713c14b68b"))
+    "pbkdf2+sha1$0102030405060708090a0b0c$100000$359a9b2a752425dd1042ab7a36f261f380ffb542"
+    "bcrypt+sha384$0102030405060708090a0b0c0d0e0f10$12$f56ffb6d2204d38ead28baedc7980ae0d86382713c14b68b"
+    "bcrypt+sha512$0102030405060708090a0b0c0d0e0f10$12$e74c3d09fadf982b6a3d5d7a704134339ed6aac45f640500"))
